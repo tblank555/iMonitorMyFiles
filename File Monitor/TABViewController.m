@@ -10,6 +10,7 @@
 
 @interface TABViewController ()
 {
+    NSURL *_testFileURL;
     __weak IBOutlet UITextField *_textToWriteField;
 }
 
@@ -21,21 +22,33 @@
 {
     [super viewDidLoad];
     
-    [self __writeTextToDisk:@"Whadderp?"];
+    // Create the test file URL
+    NSURL *documentsDirectory = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
+                                                                        inDomains:NSUserDomainMask] firstObject];
+    _testFileURL = [documentsDirectory URLByAppendingPathComponent:@"testFile"];
+    
+    // Write some text to that test file
+    [self __writeText:@"Whadderp?"
+                toURL:_testFileURL];
+    
+    // Add a file descriptor for our test file
+    CFFileDescriptorRef fileDescriptor = open([[_testFileURL path] fileSystemRepresentation], O_EVTONLY);
+    
+    // Create a GCD queue to receive file change event notifications on
+    dispatch_queue_t eventMonitorQueue = dispatch_queue_create("Event Monitor Queue", 0);
 }
 
 - (IBAction)write:(UIButton *)sender
 {
-    [self __writeTextToDisk:_textToWriteField.text];
+    [self __writeText:_textToWriteField.text
+                toURL:_testFileURL];
 }
 
-- (void)__writeTextToDisk:(NSString *)text
+- (void)__writeText:(NSString *)text toURL:(NSURL *)URL
 {
     NSData *dataFromText = [text dataUsingEncoding:NSUTF8StringEncoding];
     
-    NSURL *documentsDirectory = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
-                                                                        inDomains:NSUserDomainMask] firstObject];
-    [dataFromText writeToURL:[documentsDirectory URLByAppendingPathComponent:@"testFile"]
+    [dataFromText writeToURL:URL
                      options:kNilOptions
                        error:nil];
 }
