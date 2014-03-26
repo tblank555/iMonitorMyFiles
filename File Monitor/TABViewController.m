@@ -20,6 +20,8 @@
 
 @implementation TABViewController
 
+#pragma mark - View Lifecycle
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -48,7 +50,7 @@
     // Log one or more messages to the screen when there's a file change event
     dispatch_source_set_event_handler(_source, ^
     {
-        unsigned long eventType = dispatch_source_get_mask(_source);
+        unsigned long eventType = dispatch_source_get_data(_source);
         if (eventType & DISPATCH_VNODE_ATTRIB)
             [self __logTextToScreen:@"Test file's metadata changed."];
         if (eventType & DISPATCH_VNODE_DELETE)
@@ -80,11 +82,21 @@
     dispatch_source_cancel(_source);
 }
 
+#pragma mark - Actions
+
 - (IBAction)write:(UIButton *)sender
 {
     [self __writeText:_textToWriteField.text
                 toURL:_testFileURL];
+    [self dismissKeyboard:sender];
 }
+
+- (IBAction)dismissKeyboard:(UIButton *)sender
+{
+    [_textToWriteField resignFirstResponder];
+}
+
+#pragma mark - Helper Methods
 
 - (void)__writeText:(NSString *)text toURL:(NSURL *)URL
 {
