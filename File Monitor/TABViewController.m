@@ -100,6 +100,8 @@
 
 - (void)__writeText:(NSString *)text toURL:(NSURL *)URL
 {
+    [self __logTextToScreen:[NSString stringWithFormat:@"Writing text: %@", text]];
+    
     NSData *dataFromText = [text dataUsingEncoding:NSUTF8StringEncoding];
     
     [dataFromText writeToURL:URL
@@ -119,5 +121,7 @@
         _eventTextView.text = [NSString stringWithFormat:@"%@: %@\n%@", logTime, text, previousText];
     });
 }
+
+#pragma mark - UITextField
 
 @end
