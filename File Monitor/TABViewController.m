@@ -8,7 +8,7 @@
 
 #import "TABViewController.h"
 
-@interface TABViewController ()
+@interface TABViewController () <UITextFieldDelegate>
 {
     NSURL *_testFileURL;
     dispatch_source_t _source;
@@ -123,5 +123,11 @@
 }
 
 #pragma mark - UITextField
+
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
+{
+    [self dismissKeyboard:nil];
+    return YES;
+}
 
 @end
