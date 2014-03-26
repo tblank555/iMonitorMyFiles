@@ -9,6 +9,9 @@
 #import "TABViewController.h"
 
 @interface TABViewController ()
+{
+    __weak IBOutlet UITextField *_textToWriteField;
+}
 
 @end
 
@@ -18,13 +21,17 @@
 {
     [super viewDidLoad];
     
-    [self __writeTestFile];
+    [self __writeTextToDisk:@"Whadderp?"];
 }
 
-- (void)__writeTestFile
+- (IBAction)write:(UIButton *)sender
 {
-    NSString *testString = @"Whadderp?";
-    NSData *dataFromText = [testString dataUsingEncoding:NSUTF8StringEncoding];
+    [self __writeTextToDisk:_textToWriteField.text];
+}
+
+- (void)__writeTextToDisk:(NSString *)text
+{
+    NSData *dataFromText = [text dataUsingEncoding:NSUTF8StringEncoding];
     
     NSURL *documentsDirectory = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
                                                                         inDomains:NSUserDomainMask] firstObject];
