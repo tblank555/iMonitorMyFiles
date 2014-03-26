@@ -17,13 +17,20 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+    
+    [self __writeTestFile];
 }
 
-- (void)didReceiveMemoryWarning
+- (void)__writeTestFile
 {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+    NSString *testString = @"Whadderp?";
+    NSData *dataFromText = [testString dataUsingEncoding:NSUTF8StringEncoding];
+    
+    NSURL *documentsDirectory = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
+                                                                        inDomains:NSUserDomainMask] firstObject];
+    [dataFromText writeToURL:[documentsDirectory URLByAppendingPathComponent:@"testFile"]
+                     options:kNilOptions
+                       error:nil];
 }
 
 @end
