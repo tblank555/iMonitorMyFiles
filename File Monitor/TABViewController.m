@@ -2,8 +2,8 @@
 //  TABViewController.m
 //  File Monitor
 //
-//  Created by T Blank on 3/25/14.
-//  Copyright (c) 2014 T Blank. All rights reserved.
+//  Created by Travis Blankenship on 3/25/14.
+//  Copyright (c) 2014 Travis Blankenship. All rights reserved.
 //
 
 #import "TABViewController.h"
@@ -28,7 +28,7 @@
 {
     [super viewDidLoad];
     
-    // Reset this flag. It allows us to keep monitoring a file even if another app deletes and re-creates it.
+    // Reset this flag. It allows us to keep monitoring a file even if another app deletes and recreates it
     _keepMonitoringFile = NO;
     
     // Create the test file URL
@@ -59,6 +59,7 @@
     // Get a reference to the default queue so our file notifications can go out on it
     dispatch_queue_t defaultQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     
+    // Create a dispatch source
     _source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE,
                                      _fileDescriptor,
                                      DISPATCH_VNODE_ATTRIB | DISPATCH_VNODE_DELETE | DISPATCH_VNODE_EXTEND | DISPATCH_VNODE_LINK | DISPATCH_VNODE_RENAME | DISPATCH_VNODE_REVOKE | DISPATCH_VNODE_WRITE,
@@ -79,7 +80,7 @@
         if (eventType & DISPATCH_VNODE_RENAME)
         {
             [self __logTextToScreen:@"Test file was renamed."];
-            [self __resetFileDescriptor];
+            [self __recreateDispatchSource];
         }
         if (eventType & DISPATCH_VNODE_REVOKE)
             [self __logTextToScreen:@"Test file was revoked."];
@@ -94,6 +95,7 @@
         _fileDescriptor = 0;
         _source = nil;
         
+        // If this dispatch source was canceled because of a rename notification, recreate it
         if (_keepMonitoringFile)
         {
             _keepMonitoringFile = NO;
@@ -105,7 +107,7 @@
     dispatch_resume(_source);
 }
 
-- (void)__resetFileDescriptor
+- (void)__recreateDispatchSource
 {
     _keepMonitoringFile = YES;
     dispatch_source_cancel(_source);
