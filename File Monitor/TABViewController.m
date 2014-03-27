@@ -8,12 +8,11 @@
 
 #import "TABViewController.h"
 
-@interface TABViewController () <UITextFieldDelegate>
+#import "TABFileMonitor.h"
+
+@interface TABViewController () <TABFileMonitorDelegate, UITextFieldDelegate>
 {
     NSURL *_testFileURL;
-    dispatch_source_t _source;
-    int _fileDescriptor;
-    BOOL _keepMonitoringFile;
     __weak IBOutlet UITextField *_textToWriteField;
     __weak IBOutlet UITextView *_eventTextView;
 }
@@ -28,9 +27,6 @@
 {
     [super viewDidLoad];
     
-    // Reset this flag. It allows us to keep monitoring a file even if another app deletes and recreates it
-    _keepMonitoringFile = NO;
-    
     // Create the test file URL
     NSURL *documentsDirectory = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
                                                                         inDomains:NSUserDomainMask] firstObject];
@@ -40,77 +36,42 @@
     [self __writeText:@"Whadderp?"
                 toURL:_testFileURL];
     
-    [self __beginMonitoringFile];
+    TABFileMonitor *fileMonitor = [[TABFileMonitor alloc] initWithURL:_testFileURL];
+    fileMonitor.delegate = self;
 }
 
-- (void)dealloc
-{
-    dispatch_source_cancel(_source);
-}
+#pragma mark - TABFileMonitorDelegate
 
-#pragma mark - Private Methods
-
-- (void)__beginMonitoringFile
+- (void)fileMonitor:(TABFileMonitor *)fileMonitor didSeeChange:(TABFileMonitorChangeType)changeType
 {
-    // Add a file descriptor for our test file
-    _fileDescriptor = open([[_testFileURL path] fileSystemRepresentation],
-                           O_EVTONLY);
-    
-    // Get a reference to the default queue so our file notifications can go out on it
-    dispatch_queue_t defaultQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    
-    // Create a dispatch source
-    _source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE,
-                                     _fileDescriptor,
-                                     DISPATCH_VNODE_ATTRIB | DISPATCH_VNODE_DELETE | DISPATCH_VNODE_EXTEND | DISPATCH_VNODE_LINK | DISPATCH_VNODE_RENAME | DISPATCH_VNODE_REVOKE | DISPATCH_VNODE_WRITE,
-                                     defaultQueue);
-    
-    // Log one or more messages to the screen when there's a file change event
-    dispatch_source_set_event_handler(_source, ^
+    if (changeType == TABFileMonitorChangeTypeMetadata)
     {
-        unsigned long eventType = dispatch_source_get_data(_source);
-        if (eventType & DISPATCH_VNODE_ATTRIB)
-            [self __logTextToScreen:@"Test file's metadata changed."];
-        if (eventType & DISPATCH_VNODE_DELETE)
-            [self __logTextToScreen:@"Test file was deleted."];
-        if (eventType & DISPATCH_VNODE_EXTEND)
-            [self __logTextToScreen:@"Test file changed size."];
-        if (eventType & DISPATCH_VNODE_LINK)
-            [self __logTextToScreen:@"Test file's object link count changed."];
-        if (eventType & DISPATCH_VNODE_RENAME)
-        {
-            [self __logTextToScreen:@"Test file was renamed."];
-            [self __recreateDispatchSource];
-        }
-        if (eventType & DISPATCH_VNODE_REVOKE)
-            [self __logTextToScreen:@"Test file was revoked."];
-        if (eventType & DISPATCH_VNODE_WRITE)
-            [self __logTextToScreen:@"Test file was modified."];
-        [self __logTextToScreen:@"---------------------------"];
-    });
-    
-    dispatch_source_set_cancel_handler(_source, ^
+        [self __logTextToScreen:@"Test file's metadata changed."];
+    }
+    else if (changeType == TABFileMonitorChangeTypeDeleted)
     {
-        close(_fileDescriptor);
-        _fileDescriptor = 0;
-        _source = nil;
-        
-        // If this dispatch source was canceled because of a rename notification, recreate it
-        if (_keepMonitoringFile)
-        {
-            _keepMonitoringFile = NO;
-            [self __beginMonitoringFile];
-        }
-    });
-    
-    // Start monitoring the test file
-    dispatch_resume(_source);
-}
-
-- (void)__recreateDispatchSource
-{
-    _keepMonitoringFile = YES;
-    dispatch_source_cancel(_source);
+        [self __logTextToScreen:@"Test file was deleted."];
+    }
+    else if (changeType == TABFileMonitorChangeTypeSize)
+    {
+        [self __logTextToScreen:@"Test file changed size."];
+    }
+    else if (changeType == TABFileMonitorChangeTypeObjectLink)
+    {
+        [self __logTextToScreen:@"Test file's object link count changed."];
+    }
+    else if (changeType == TABFileMonitorChangeTypeRenamed)
+    {
+        [self __logTextToScreen:@"Test file was renamed."];
+    }
+    else if (changeType == TABFileMonitorChangeTypeRevoked)
+    {
+        [self __logTextToScreen:@"Test file was revoked."];
+    }
+    else if (changeType == TABFileMonitorChangeTypeModified)
+    {
+        [self __logTextToScreen:@"Test file was modified."];
+    }
 }
 
 #pragma mark - Actions
