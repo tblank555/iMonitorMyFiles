@@ -59,32 +59,63 @@
     {
         unsigned long eventType = dispatch_source_get_data(_source);
         if (eventType & DISPATCH_VNODE_ATTRIB)
-            [self.delegate fileMonitor:self
-                          didSeeChange:TABFileMonitorChangeTypeMetadata];
+        {
+            dispatch_async(dispatch_get_main_queue(), ^
+            {
+                [self.delegate fileMonitor:self
+                              didSeeChange:TABFileMonitorChangeTypeMetadata];
+            });
+        }
         if (eventType & DISPATCH_VNODE_DELETE)
         {
-            [self.delegate fileMonitor:self
-                          didSeeChange:TABFileMonitorChangeTypeDeleted];
-            [self __recreateDispatchSource];
+            dispatch_async(dispatch_get_main_queue(), ^
+            {
+                [self.delegate fileMonitor:self
+                              didSeeChange:TABFileMonitorChangeTypeDeleted];
+                [self __recreateDispatchSource];
+            });
         }
         if (eventType & DISPATCH_VNODE_EXTEND)
-            [self.delegate fileMonitor:self
-                          didSeeChange:TABFileMonitorChangeTypeSize];
+        {
+            dispatch_async(dispatch_get_main_queue(), ^
+            {
+                [self.delegate fileMonitor:self
+                              didSeeChange:TABFileMonitorChangeTypeSize];
+            });
+        }
         if (eventType & DISPATCH_VNODE_LINK)
-            [self.delegate fileMonitor:self
-                          didSeeChange:TABFileMonitorChangeTypeObjectLink];
+        {
+            dispatch_async(dispatch_get_main_queue(), ^
+            {
+                [self.delegate fileMonitor:self
+                              didSeeChange:TABFileMonitorChangeTypeObjectLink];
+            });
+        }
         if (eventType & DISPATCH_VNODE_RENAME)
         {
-            [self.delegate fileMonitor:self
-                          didSeeChange:TABFileMonitorChangeTypeRenamed];
-            [self __recreateDispatchSource];
+            dispatch_async(dispatch_get_main_queue(), ^
+            {
+                [self.delegate fileMonitor:self
+                              didSeeChange:TABFileMonitorChangeTypeRenamed];
+                [self __recreateDispatchSource];
+            });
         }
         if (eventType & DISPATCH_VNODE_REVOKE)
-            [self.delegate fileMonitor:self
-                          didSeeChange:TABFileMonitorChangeTypeRevoked];
+        {
+            dispatch_async(dispatch_get_main_queue(), ^
+            {
+                [self.delegate fileMonitor:self
+                              didSeeChange:TABFileMonitorChangeTypeRevoked];
+            });
+        }
         if (eventType & DISPATCH_VNODE_WRITE)
-            [self.delegate fileMonitor:self
-                          didSeeChange:TABFileMonitorChangeTypeModified];
+        {
+            dispatch_async(dispatch_get_main_queue(), ^
+            {
+                [self.delegate fileMonitor:self
+                              didSeeChange:TABFileMonitorChangeTypeModified];
+            });
+        }
     });
     
     dispatch_source_set_cancel_handler(_source, ^
