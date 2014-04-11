@@ -62,8 +62,11 @@
             [self.delegate fileMonitor:self
                           didSeeChange:TABFileMonitorChangeTypeMetadata];
         if (eventType & DISPATCH_VNODE_DELETE)
+        {
             [self.delegate fileMonitor:self
                           didSeeChange:TABFileMonitorChangeTypeDeleted];
+            [self __recreateDispatchSource];
+        }
         if (eventType & DISPATCH_VNODE_EXTEND)
             [self.delegate fileMonitor:self
                           didSeeChange:TABFileMonitorChangeTypeSize];
@@ -90,7 +93,7 @@
         _fileDescriptor = 0;
         _source = nil;
         
-        // If this dispatch source was canceled because of a rename notification, recreate it
+        // If this dispatch source was canceled because of a rename or delete notification, recreate it
         if (_keepMonitoringFile)
         {
             _keepMonitoringFile = NO;
