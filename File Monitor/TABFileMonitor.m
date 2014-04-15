@@ -57,65 +57,8 @@
     // Log one or more messages to the screen when there's a file change event
     dispatch_source_set_event_handler(_source, ^
     {
-        unsigned long eventType = dispatch_source_get_data(_source);
-        if (eventType & DISPATCH_VNODE_ATTRIB)
-        {
-            dispatch_async(dispatch_get_main_queue(), ^
-            {
-                [self.delegate fileMonitor:self
-                              didSeeChange:TABFileMonitorChangeTypeMetadata];
-            });
-        }
-        if (eventType & DISPATCH_VNODE_DELETE)
-        {
-            dispatch_async(dispatch_get_main_queue(), ^
-            {
-                [self.delegate fileMonitor:self
-                              didSeeChange:TABFileMonitorChangeTypeDeleted];
-                [self __recreateDispatchSource];
-            });
-        }
-        if (eventType & DISPATCH_VNODE_EXTEND)
-        {
-            dispatch_async(dispatch_get_main_queue(), ^
-            {
-                [self.delegate fileMonitor:self
-                              didSeeChange:TABFileMonitorChangeTypeSize];
-            });
-        }
-        if (eventType & DISPATCH_VNODE_LINK)
-        {
-            dispatch_async(dispatch_get_main_queue(), ^
-            {
-                [self.delegate fileMonitor:self
-                              didSeeChange:TABFileMonitorChangeTypeObjectLink];
-            });
-        }
-        if (eventType & DISPATCH_VNODE_RENAME)
-        {
-            dispatch_async(dispatch_get_main_queue(), ^
-            {
-                [self.delegate fileMonitor:self
-                              didSeeChange:TABFileMonitorChangeTypeRenamed];
-                [self __recreateDispatchSource];
-            });
-        }
-        if (eventType & DISPATCH_VNODE_REVOKE)
-        {
-            dispatch_async(dispatch_get_main_queue(), ^
-            {
-                [self.delegate fileMonitor:self
-                              didSeeChange:TABFileMonitorChangeTypeRevoked];
-            });
-        }
-        if (eventType & DISPATCH_VNODE_WRITE)
-        {
-            dispatch_async(dispatch_get_main_queue(), ^
-            {
-                [self.delegate fileMonitor:self
-                              didSeeChange:TABFileMonitorChangeTypeModified];
-            });
-        }
+        unsigned long eventTypes = dispatch_source_get_data(_source);
+        [self __alertDelegateOfEvents:eventTypes];
     });
     
     dispatch_source_set_cancel_handler(_source, ^
@@ -140,6 +83,58 @@
 {
     _keepMonitoringFile = YES;
     dispatch_source_cancel(_source);
+}
+
+- (void)__alertDelegateOfEvents:(unsigned long)eventTypes
+{
+    dispatch_async(dispatch_get_main_queue(), ^
+    {
+        BOOL recreateDispatchSource = NO;
+        NSMutableSet *eventSet = [[NSMutableSet alloc] initWithCapacity:7];
+        
+        if (eventTypes & DISPATCH_VNODE_ATTRIB)
+        {
+            [eventSet addObject:@(TABFileMonitorChangeTypeMetadata)];
+        }
+        if (eventTypes & DISPATCH_VNODE_DELETE)
+        {
+            [eventSet addObject:@(TABFileMonitorChangeTypeDeleted)];
+            recreateDispatchSource = YES;
+        }
+        if (eventTypes & DISPATCH_VNODE_EXTEND)
+        {
+            [eventSet addObject:@(TABFileMonitorChangeTypeSize)];
+        }
+        if (eventTypes & DISPATCH_VNODE_LINK)
+        {
+            [eventSet addObject:@(TABFileMonitorChangeTypeObjectLink)];
+        }
+        if (eventTypes & DISPATCH_VNODE_RENAME)
+        {
+            [eventSet addObject:@(TABFileMonitorChangeTypeRenamed)];
+            recreateDispatchSource = YES;
+        }
+        if (eventTypes & DISPATCH_VNODE_REVOKE)
+        {
+            [eventSet addObject:@(TABFileMonitorChangeTypeRevoked)];
+        }
+        if (eventTypes & DISPATCH_VNODE_WRITE)
+        {
+            [eventSet addObject:@(TABFileMonitorChangeTypeModified)];
+        }
+        
+        for (NSNumber *eventType in eventSet)
+        {
+            TABFileMonitorChangeType changeType = (TABFileMonitorChangeType)[eventType unsignedIntegerValue];
+            [self.delegate fileMonitor:self
+                          didSeeChange:changeType];
+        }
+        
+        if (recreateDispatchSource)
+        {
+            [self __recreateDispatchSource];
+        }
+    });
 }
 
 @end
