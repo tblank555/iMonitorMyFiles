@@ -1,0 +1,16 @@
+PODS:
+  - iMonitorMyFiles (0.1.0)
+
+DEPENDENCIES:
+  - iMonitorMyFiles (from `../`)
+
+EXTERNAL SOURCES:
+  iMonitorMyFiles:
+    :path: ../
+
+SPEC CHECKSUMS:
+  iMonitorMyFiles: ff08dba6a7d11e37415ffae6c68e78bc4aaf121e
+
+PODFILE CHECKSUM: 98af6d48a4e366ec8905b29abf200fa234d7299e
+
+COCOAPODS: 1.0.1

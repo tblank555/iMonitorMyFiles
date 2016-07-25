@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'iMonitorMyFiles_Example' do
+  pod 'iMonitorMyFiles', :path => '../'
+
+  target 'iMonitorMyFiles_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end

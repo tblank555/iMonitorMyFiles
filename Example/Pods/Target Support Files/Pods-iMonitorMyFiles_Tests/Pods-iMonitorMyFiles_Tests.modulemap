@@ -1,0 +1,6 @@
+framework module Pods_iMonitorMyFiles_Tests {
+  umbrella header "Pods-iMonitorMyFiles_Tests-umbrella.h"
+
+  export *
+  module * { export * }
+}

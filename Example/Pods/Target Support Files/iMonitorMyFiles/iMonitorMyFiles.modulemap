@@ -1,0 +1,6 @@
+framework module iMonitorMyFiles {
+  umbrella header "iMonitorMyFiles-umbrella.h"
+
+  export *
+  module * { export * }
+}
